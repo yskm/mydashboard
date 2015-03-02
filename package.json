@@ -1,10 +1,11 @@
 {
-  "name": "node-tumblr",
+  "name": "mydashboard",
   "scripts": {
     "start": "node server.js"
   },
   "dependencies": {
     "express": "^4.11.2",
+    "express-session": "^1.10.3",
     "tumblr.js": "0.0.4"
   }
 }
