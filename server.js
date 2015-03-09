@@ -1,6 +1,7 @@
 var express = require('express');
 var app = express();
 var session = require('express-session');
+var session_secret = process.env.EXPRESS_SESSION_SECRET;
 
 var tumblr = require('tumblr.js');
 var tumblr_consumer_key = process.env.TUMBLR_CONSUMER_KEY;
@@ -18,7 +19,7 @@ var oa = new OAuth(
     );
 
 app.use(session({
-    secret: "keyboard cat",
+    secret: session_secret,
     resave: false,
     saveUninitialized: false
 }));
@@ -28,7 +29,7 @@ app.use(express.static(__dirname + '/public'));
 app.set('view engine', 'jade');
 
 app.get('/', function(req, res) {
-    if (req.session.oauth_status !== 'authorized') {
+    if (req.session.oauth_status !== 'authenticated') {
         res.redirect('/auth');
     }
     else {
@@ -52,17 +53,22 @@ app.get('/', function(req, res) {
 });
 
 app.get('/auth', function(req, res) {
-    oa.getOAuthRequestToken(function(err, oauth_token, oauth_token_secret, results) {
-        if (err) {
-            console.log(err);
-            res.end();
-        }
+    if (req.session.oauth_status === 'authenticated') {
+        res.redirect('/');
+    }
+    else {
+        oa.getOAuthRequestToken(function(err, oauth_token, oauth_token_secret, results) {
+            if (err) {
+                console.log(err);
+                res.end();
+            }
 
-        req.session.oauth_token = oauth_token;
-        req.session.oauth_token_secret = oauth_token_secret;
-        req.session.oauth_status = 'initialized';
-        res.redirect('http://www.tumblr.com/oauth/authorize?oauth_token='+oauth_token);
-    });
+            req.session.oauth_token = oauth_token;
+            req.session.oauth_token_secret = oauth_token_secret;
+            req.session.oauth_status = 'initialized';
+            res.redirect('http://www.tumblr.com/oauth/authorize?oauth_token='+oauth_token);
+        });
+    }
 });
 
 app.get('/callback', function(req, res) {
@@ -79,14 +85,14 @@ app.get('/callback', function(req, res) {
                 else {
                     req.session.oauth_access_token = oauth_access_token;
                     req.session.oauth_access_token_secret = oauth_access_token_secret;
-                    req.session.oauth_status = 'authorized';
+                    req.session.oauth_status = 'authenticated';
                     res.redirect('/');
                 }
             }
         );
     }
     else {
-        res.end();
+        res.redirect('/');
     }
 });
 
