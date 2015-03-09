@@ -1,0 +1,9 @@
+html
+  head
+    title= title
+    link(rel='stylesheet', href='/css/style.css')
+  body
+    each post in posts
+      if post.type == 'photo'
+        article(class='photo')
+          img(src=post.photos[0].original_size.url)

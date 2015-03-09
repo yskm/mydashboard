@@ -1,0 +1,12 @@
+body {
+  text-align: center;
+  background-color: #36465d;
+}
+
+article.photo {
+  margin-bottom: 20px;
+}
+
+article.photo img {
+  width: 540px;
+}

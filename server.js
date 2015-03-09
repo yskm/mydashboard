@@ -23,6 +23,10 @@ app.use(session({
     saveUninitialized: false
 }));
 
+app.use(express.static(__dirname + '/public'));
+
+app.set('view engine', 'jade');
+
 app.get('/', function(req, res) {
     if (req.session.oauth_status !== 'authorized') {
         res.redirect('/auth');
@@ -35,9 +39,14 @@ app.get('/', function(req, res) {
             token_secret: req.session.oauth_access_token_secret
         });
 
-        client.userInfo(function(err, data) {
-            res.write('<p>your name: '+data.user.name+'</p>');
-            res.end();
+        client.dashboard(function(err, data) {
+            if (err) {
+                console.log(err);
+                res.end();
+            }
+            else {
+                res.render('index', {title: '', posts: data.posts});
+            }
         });
     }
 });
