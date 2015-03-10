@@ -2,6 +2,8 @@ var express = require('express');
 var app = express();
 var session = require('express-session');
 var session_secret = process.env.EXPRESS_SESSION_SECRET;
+var server = require('http').Server(app);
+var io = require('socket.io')(server);
 
 var tumblr = require('tumblr.js');
 var tumblr_consumer_key = process.env.TUMBLR_CONSUMER_KEY;
@@ -17,6 +19,10 @@ var oa = new OAuth(
         'http://localhost:3000/callback',
         'HMAC-SHA1'
     );
+
+io.on('connection', function(socket) {
+    console.log('socket.io connected');
+});
 
 app.use(session({
     secret: session_secret,
@@ -96,6 +102,6 @@ app.get('/callback', function(req, res) {
     }
 });
 
-app.listen(3000, function() {
+server.listen(3000, function() {
     console.log('listening on *:3000');
 });
