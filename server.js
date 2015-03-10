@@ -2,6 +2,8 @@ var express = require('express');
 var app = express();
 var session = require('express-session');
 var session_secret = process.env.EXPRESS_SESSION_SECRET;
+var RedisStore = require('connect-redis')(session);
+var sessionStore = new RedisStore();
 var server = require('http').Server(app);
 var io = require('socket.io')(server);
 
@@ -20,12 +22,29 @@ var oa = new OAuth(
         'HMAC-SHA1'
     );
 
+io.use(function(socket, next) {
+    var hashedCookies = require('cookie').parse(socket.request.headers.cookie);
+    var cookies = require('cookie-parser/lib/parse').signedCookies(hashedCookies, session_secret);
+    var sid = cookies['connect.sid'];
+
+    sessionStore.get(sid, function(err, session) {
+        if (err) {
+            console.log(err);
+        }
+        else {
+            socket.session = session;
+            next();
+        }
+    });
+});
+
 io.on('connection', function(socket) {
     console.log('socket.io connected');
 });
 
 app.use(session({
     secret: session_secret,
+    store: sessionStore,
     resave: false,
     saveUninitialized: false
 }));
