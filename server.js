@@ -30,16 +30,50 @@ io.use(function(socket, next) {
     sessionStore.get(sid, function(err, session) {
         if (err) {
             console.log(err);
+            return;
         }
-        else {
-            socket.session = session;
-            next();
-        }
+
+        socket.session = session;
+        next();
     });
 });
 
 io.on('connection', function(socket) {
-    console.log('socket.io connected');
+    console.log('socket.io connected: ' + socket.id);
+
+    if (socket.session === undefined || socket.session.oauth_status !== 'authenticated') {
+        return;
+    }
+    var client = tumblr.createClient({
+        consumer_key: tumblr_consumer_key,
+        consumer_secret: tumblr_consumer_secret,
+        token: socket.session.oauth_access_token,
+        token_secret: socket.session.oauth_access_token_secret
+    });
+    var latest_post_id = socket.session.latest_post_id;
+
+    var interval =  setInterval(function() {
+        if (latest_post_id) {
+            client.dashboard({
+                since_id: latest_post_id
+            }, function(err, data) {
+                if (err) {
+                    console.log(err);
+                    return;
+                }
+
+                if (data.posts !== undefined && data.posts.length > 0) {
+                    socket.emit('new_post', data);
+                    latest_post_id = data.posts[0].id;
+                }
+            });
+        }
+    }, 5000);
+
+    socket.on('disconnect', function() {
+        console.log('socket.io disconnected: ' + socket.id);
+        clearInterval(interval);
+    });
 });
 
 app.use(session({
@@ -69,10 +103,11 @@ app.get('/', function(req, res) {
             if (err) {
                 console.log(err);
                 res.end();
+                return;
             }
-            else {
-                res.render('index', {title: '', posts: data.posts});
-            }
+
+            req.session.latest_post_id = data.posts[0].id;
+            res.render('index', {title: '', posts: data.posts});
         });
     }
 });
@@ -86,6 +121,7 @@ app.get('/auth', function(req, res) {
             if (err) {
                 console.log(err);
                 res.end();
+                return;
             }
 
             req.session.oauth_token = oauth_token;
@@ -106,13 +142,13 @@ app.get('/callback', function(req, res) {
                 if (err) {
                     console.log(err);
                     res.end();
+                    return;
                 }
-                else {
-                    req.session.oauth_access_token = oauth_access_token;
-                    req.session.oauth_access_token_secret = oauth_access_token_secret;
-                    req.session.oauth_status = 'authenticated';
-                    res.redirect('/');
-                }
+
+                req.session.oauth_access_token = oauth_access_token;
+                req.session.oauth_access_token_secret = oauth_access_token_secret;
+                req.session.oauth_status = 'authenticated';
+                res.redirect('/');
             }
         );
     }
