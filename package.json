@@ -1,7 +1,8 @@
 {
   "name": "mydashboard",
   "scripts": {
-    "start": "node server.js"
+    "start": "npm run build && node server.js",
+    "build": "browserify ./public/js/index.js -o ./public/js/bundle.js"
   },
   "dependencies": {
     "connect-redis": "^2.2.0",
@@ -12,6 +13,12 @@
     "jade": "^1.9.2",
     "oauth": "^0.9.12",
     "socket.io": "^1.3.5",
+    "socket.io-client": "^1.3.5",
     "tumblr.js": "0.0.4"
+  },
+  "devDependencies": {
+    "browserify": "^9.0.3",
+    "gulp": "^3.8.11",
+    "vinyl-source-stream": "^1.1.0"
   }
 }

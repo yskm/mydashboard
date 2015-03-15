@@ -1,5 +1,5 @@
 (function() {
-	var socket = io();
+	var socket = require('socket.io-client')();
 
 	socket.on('new_post', function(data) {
 		for (var i = 0; i < data.posts.length; i++) {
