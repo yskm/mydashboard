@@ -4,9 +4,9 @@ html
     link(rel='stylesheet', href='/css/style.css')
   body
     section(id='posts')
-      each post in posts
+      each post, index in posts
         if post.type == 'photo'
-          article(class='photo')
+          article(class='photo', data-post-num=index)
             img(src=post.photos[0].original_size.url)
     script(src='https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js')
     script(src='/js/bundle.js')
