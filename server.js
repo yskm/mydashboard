@@ -112,6 +112,37 @@ app.get('/', function(req, res) {
   }
 });
 
+app.get('/posts', function(req, res) {
+  if (req.session.oauth_status !== 'authenticated') {
+    res.end();
+    return;
+  }
+  else if (!'offset' in req.query) {
+    res.end();
+    return;
+  }
+
+  var client = tumblr.createClient({
+    consumer_key: tumblr_consumer_key,
+    consumer_secret: tumblr_consumer_secret,
+    token: req.session.oauth_access_token,
+    token_secret: req.session.oauth_access_token_secret
+  });
+
+  client.dashboard({
+    offset: req.query.offset
+  }, function(err, data) {
+    if (err) {
+      console.log(err);
+      res.end();
+      return;
+    }
+
+    res.contentType('application/json');
+    res.send(JSON.stringify(data));
+  });
+});
+
 app.get('/auth', function(req, res) {
   if (req.session.oauth_status === 'authenticated') {
     res.redirect('/');
