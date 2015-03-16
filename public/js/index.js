@@ -48,7 +48,11 @@
     $('#posts').children().each(function() {
       if ($(this).attr('data-post-num') === post_num.toString()) {
         if ($(this).hasClass('other')) {
-          switchPost(post_num + 1);
+          if (post_num - current_post_num > 0) {
+            switchPost(post_num + 1);
+          } else {
+            switchPost(post_num - 1);
+          }
           return;
         }
         var dist_y = $(this).offset().top;
