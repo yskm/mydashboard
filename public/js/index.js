@@ -2,7 +2,7 @@
   var socket = require('socket.io-client')();
   var keycode = require('keycode');
   var current_post_num = latest_post_num = 0;
-  var oldest_post_num = 19;
+  var oldest_post_num = -1;
   var load_permission = true;
 
   socket.on('new_post', function(data) {
@@ -103,6 +103,10 @@
           .attr('data-post-num', ++oldest_post_num);
       }
 
+      if (oldest_post_num === 0) {
+        socket.emit('start_loading', post.id);
+      }
+
       if ($old_posts === undefined) {
         $old_posts = $post;
       } else {
@@ -111,4 +115,7 @@
     }
     $old_posts.appendTo($('#posts'));
   }
+
+  loadOldPosts();
+
 })();
