@@ -1,14 +1,13 @@
 var express = require('express');
 var app = express();
 var server = require('http').Server(app);
-var hostname = process.env.HOSTNAME || 'localhost';
-var port     = process.env.PORT     || '3000';
+var url = require('url');
+var hostURL = url.parse(process.env.HOST || 'http://localhost:3000/');
 var io = require('socket.io')(server);
 
 var session = require('express-session');
 var session_secret = process.env.EXPRESS_SESSION_SECRET;
 var RedisStore = require('connect-redis')(session);
-var url = require('url');
 var redisURL = url.parse(process.env.REDISCLOUD_URL || 'redis://localhost:6379');
 var sessionStore = new RedisStore({
   host: redisURL.hostname,
@@ -20,12 +19,6 @@ var tumblr = require('tumblr.js');
 var tumblr_consumer_key = process.env.TUMBLR_CONSUMER_KEY;
 var tumblr_consumer_secret = process.env.TUMBLR_CONSUMER_SECRET;
 
-var callback_url = 'http://'+hostname;
-if (port !== '80') {
-  callback_url += ':'+port;
-}
-callback_url += '/callback';
-
 var OAuth = require('oauth').OAuth;
 var oa = new OAuth(
   'http://www.tumblr.com/oauth/request_token',
@@ -33,7 +26,7 @@ var oa = new OAuth(
   tumblr_consumer_key,
   tumblr_consumer_secret,
   '1.0',
-  callback_url,
+  hostURL.href+'callback',
   'HMAC-SHA1'
 );
 
@@ -188,6 +181,6 @@ app.get('/callback', function(req, res) {
   }
 });
 
-server.listen(parseInt(port), function() {
-  console.log('listening on '+hostname+':'+port);
+server.listen(hostURL.port || process.env.PORT, function() {
+  console.log('listening on '+hostURL.host);
 });
