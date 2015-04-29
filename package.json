@@ -1,5 +1,5 @@
 {
-  "name": "mydashboard",
+  "name": "tumblideshow",
   "scripts": {
     "start": "npm run build && node server.js",
     "build": "browserify ./public/js/index.js -o ./public/js/bundle.js"
