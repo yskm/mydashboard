@@ -2,7 +2,7 @@ var express = require('express');
 var app = express();
 var server = require('http').Server(app);
 var url = require('url');
-var hostURL = url.parse(process.env.HOST || 'http://localhost:3000/');
+var hostURL = url.parse(process.env.HOST_URL || 'http://localhost:3000/');
 var io = require('socket.io')(server);
 
 var session = require('express-session');
@@ -84,6 +84,13 @@ io.on('connection', function(socket) {
     });
   });
 
+});
+
+app.use(function(req, res, next) {
+  if (hostURL.protocol == 'https:' && req.headers["x-forwarded-proto"] != 'https') {
+    return res.redirect("https://" + req.headers.host + req.url);
+  }
+  next();
 });
 
 app.use(session({
