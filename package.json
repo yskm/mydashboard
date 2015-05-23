@@ -1,10 +1,11 @@
 {
   "name": "tumblideshow",
   "scripts": {
-    "start": "npm run build && node server.js",
+    "start": "npm run build && babel-node server.js",
     "build": "browserify ./public/js/index.js -o ./public/js/bundle.js"
   },
   "dependencies": {
+    "babel": "^5.4.7",
     "browserify": "^9.0.8",
     "connect-redis": "^2.2.0",
     "cookie": "^0.1.2",

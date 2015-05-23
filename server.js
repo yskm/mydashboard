@@ -1,26 +1,29 @@
-var express = require('express');
+const hostURL = url.parse(process.env.HOST_URL || 'http://localhost:3000/');
+import express from 'express';
+import http from 'http';
+import url from 'url';
+import socketio from 'socket.io';
 var app = express();
-var server = require('http').Server(app);
-var url = require('url');
-var hostURL = url.parse(process.env.HOST_URL || 'http://localhost:3000/');
-var io = require('socket.io')(server);
+var server = http.Server(app);
+var io = socketio(server);
 
-var session = require('express-session');
-var session_secret = process.env.EXPRESS_SESSION_SECRET;
-var RedisStore = require('connect-redis')(session);
-var redisURL = url.parse(process.env.REDISCLOUD_URL || 'redis://localhost:6379');
+const redisURL = url.parse(process.env.REDISCLOUD_URL || 'redis://localhost:6379');
+const session_secret = process.env.EXPRESS_SESSION_SECRET;
+import session from 'express-session';
+import redis from 'connect-redis';
+var RedisStore = redis(session);
 var sessionStore = new RedisStore({
   host: redisURL.hostname,
   port: redisURL.port,
   pass: redisURL.auth? redisURL.auth.split(":")[1]: ''
 });
 
-var tumblr = require('tumblr.js');
-var tumblr_consumer_key = process.env.TUMBLR_CONSUMER_KEY;
-var tumblr_consumer_secret = process.env.TUMBLR_CONSUMER_SECRET;
+const tumblr_consumer_key = process.env.TUMBLR_CONSUMER_KEY;
+const tumblr_consumer_secret = process.env.TUMBLR_CONSUMER_SECRET;
+import tumblr from 'tumblr.js';
 
-var OAuth = require('oauth').OAuth;
-var oa = new OAuth(
+import {OAuth} from 'oauth';
+const oa = new OAuth(
   'http://www.tumblr.com/oauth/request_token',
   'http://www.tumblr.com/oauth/access_token',
   tumblr_consumer_key,
@@ -30,12 +33,12 @@ var oa = new OAuth(
   'HMAC-SHA1'
 );
 
-io.use(function(socket, next) {
+io.use((socket, next) => {
   var hashedCookies = require('cookie').parse(socket.request.headers.cookie);
   var cookies = require('cookie-parser/lib/parse').signedCookies(hashedCookies, session_secret);
   var sid = cookies['connect.sid'];
 
-  sessionStore.get(sid, function(err, session) {
+  sessionStore.get(sid, (err, session) => {
     if (err) {
       console.log(err);
       return;
@@ -46,10 +49,10 @@ io.use(function(socket, next) {
   });
 });
 
-io.on('connection', function(socket) {
+io.on('connection', (socket) => {
   console.log('socket.io connected: ' + socket.id);
 
-  socket.on('start_loading', function(latest_post_id) {
+  socket.on('start_loading', (latest_post_id) => {
     if (socket.session === undefined || socket.session.oauth_status !== 'authenticated') {
       return;
     }
@@ -60,11 +63,11 @@ io.on('connection', function(socket) {
       token_secret: socket.session.oauth_access_token_secret
     });
 
-    var interval =  setInterval(function() {
+    var interval = setInterval(() => {
       if (latest_post_id) {
         client.dashboard({
             since_id: latest_post_id
-        }, function(err, data) {
+        }, (err, data) => {
           if (err) {
             console.log(err);
             return;
@@ -78,7 +81,7 @@ io.on('connection', function(socket) {
       }
     }, 5000);
 
-    socket.on('disconnect', function() {
+    socket.on('disconnect', () => {
       console.log('socket.io disconnected: ' + socket.id);
       clearInterval(interval);
     });
@@ -86,9 +89,9 @@ io.on('connection', function(socket) {
 
 });
 
-app.use(function(req, res, next) {
+app.use((req, res, next) => {
   if (hostURL.protocol == 'https:' && req.headers["x-forwarded-proto"] != 'https') {
-    return res.redirect("https://" + req.headers.host + req.url);
+    return res.redirect(`https://${req.headers.host}${req.url}`);
   }
   next();
 });
@@ -104,7 +107,7 @@ app.use(express.static(__dirname + '/public'));
 
 app.set('view engine', 'jade');
 
-app.get('/', function(req, res) {
+app.get('/', (req, res) => {
   if (req.session.oauth_status !== 'authenticated') {
     res.redirect('/auth');
     return;
@@ -112,7 +115,7 @@ app.get('/', function(req, res) {
   res.render('index');
 });
 
-app.get('/posts', function(req, res) {
+app.get('/posts', (req, res) => {
   if (req.session.oauth_status !== 'authenticated') {
     res.end();
     return;
@@ -131,7 +134,7 @@ app.get('/posts', function(req, res) {
 
   client.dashboard({
     offset: req.query.offset
-  }, function(err, data) {
+  }, (err, data) => {
     if (err) {
       console.log(err);
       res.end();
@@ -143,12 +146,12 @@ app.get('/posts', function(req, res) {
   });
 });
 
-app.get('/auth', function(req, res) {
+app.get('/auth', (req, res) => {
   if (req.session.oauth_status === 'authenticated') {
     res.redirect('/');
   }
   else {
-    oa.getOAuthRequestToken(function(err, oauth_token, oauth_token_secret, results) {
+    oa.getOAuthRequestToken((err, oauth_token, oauth_token_secret, results) => {
       if (err) {
         console.log(err);
         res.end();
@@ -158,18 +161,18 @@ app.get('/auth', function(req, res) {
       req.session.oauth_token = oauth_token;
       req.session.oauth_token_secret = oauth_token_secret;
       req.session.oauth_status = 'initialized';
-      res.redirect('http://www.tumblr.com/oauth/authorize?oauth_token='+oauth_token);
+      res.redirect(`http://www.tumblr.com/oauth/authorize?oauth_token=${oauth_token}`);
     });
   }
 });
 
-app.get('/callback', function(req, res) {
+app.get('/callback', (req, res) => {
   if (req.session.oauth_status === 'initialized') {
     oa.getOAuthAccessToken(
       req.session.oauth_token,
       req.session.oauth_token_secret,
       req.query.oauth_verifier,
-      function(err, oauth_access_token, oauth_access_token_secret, results) {
+      (err, oauth_access_token, oauth_access_token_secret, results) => {
         if (err) {
           console.log(err);
           res.end();
@@ -188,6 +191,6 @@ app.get('/callback', function(req, res) {
   }
 });
 
-server.listen(hostURL.port || process.env.PORT, function() {
-  console.log('listening on '+hostURL.host);
+server.listen(hostURL.port || process.env.PORT, () => {
+  console.log(`listening on ${hostURL.host}`);
 });
