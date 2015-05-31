@@ -191,6 +191,6 @@ app.get('/callback', (req, res) => {
   }
 });
 
-server.listen(hostURL.port, () => {
+server.listen(hostURL.port || process.env.PORT, () => {
   console.log(`listening on ${hostURL.host}`);
 });
