@@ -1,4 +1,4 @@
-const hostURL = url.parse(process.env.HOST_URL || 'http://localhost:3000/');
+const hostURL = url.parse(process.env.TS_HOST_URL || 'http://localhost:3000/');
 import express from 'express';
 import http from 'http';
 import url from 'url';
@@ -8,7 +8,7 @@ var server = http.Server(app);
 var io = socketio(server);
 
 const redisURL = url.parse(process.env.REDISCLOUD_URL || 'redis://localhost:6379');
-const session_secret = process.env.EXPRESS_SESSION_SECRET;
+const session_secret = process.env.TS_SESSION_SECRET;
 import session from 'express-session';
 import redis from 'connect-redis';
 var RedisStore = redis(session);
@@ -191,6 +191,6 @@ app.get('/callback', (req, res) => {
   }
 });
 
-server.listen(hostURL.port || process.env.PORT, () => {
+server.listen(hostURL.port, () => {
   console.log(`listening on ${hostURL.host}`);
 });
