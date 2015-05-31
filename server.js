@@ -18,8 +18,8 @@ var sessionStore = new RedisStore({
   pass: redisURL.auth? redisURL.auth.split(":")[1]: ''
 });
 
-const tumblr_consumer_key = process.env.TUMBLR_CONSUMER_KEY;
-const tumblr_consumer_secret = process.env.TUMBLR_CONSUMER_SECRET;
+const tumblr_consumer_key = process.env.TS_CONSUMER_KEY;
+const tumblr_consumer_secret = process.env.TS_CONSUMER_SECRET;
 import tumblr from 'tumblr.js';
 
 import {OAuth} from 'oauth';
