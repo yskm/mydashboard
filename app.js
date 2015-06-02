@@ -1,0 +1,23 @@
+{
+  "name": "tumblideshow",
+  "description": "Real-time slideshow app for Tumblr",
+  "env": {
+    "TS_CONSUMER_KEY": {
+      "description": "your tumblr consumer key"
+    },
+    "TS_CONSUMER_SECRET": {
+      "description": "your tumblr consumer secret"
+    },
+    "TS_SESSION_SECRET": {
+      "description": "your secret key for session",
+      "generator": "secret"
+    },
+    "TS_HOST_URL": {
+      "description": "your herokuapp url",
+      "value": "https://your_herokuapp_name.herokuapp.com/"
+    },
+  },
+  "addons": [
+    "rediscloud"
+  ]
+}
