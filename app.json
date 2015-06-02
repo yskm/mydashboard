@@ -15,7 +15,7 @@
     "TS_HOST_URL": {
       "description": "your herokuapp url",
       "value": "https://your_herokuapp_name.herokuapp.com/"
-    },
+    }
   },
   "addons": [
     "rediscloud"
