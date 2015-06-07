@@ -9,10 +9,11 @@
     for (var i = 0; i < data.posts.length; i++) {
       var post = data.posts[i];
       if (post.type === 'photo') {
+        var $img = getImgElement(post.photos[0].original_size.url, post.post_url);
         $('<article>')
           .attr('class', 'photo')
           .attr('data-post-num', --latest_post_num)
-          .append($('<img>').attr('src', post.photos[0].original_size.url))
+          .append($img)
           .prependTo($('#posts'));
 
         if (current_post_num === latest_post_num + 1) {
@@ -93,14 +94,11 @@
     for (var i = 0; i < posts.length; i++) {
       var post = posts[i];
       if (post.type === 'photo') {
-        var $img = $('<img>').attr('src', post.photos[0].original_size.url);
+        var $img = getImgElement(post.photos[0].original_size.url, post.post_url);
         var $post = $('<article>')
           .attr('class', 'photo')
           .attr('data-post-num', ++oldest_post_num)
-          .append($('<a>').attr({
-            'href': post.post_url,
-            'target': '_blank'
-          }).append($img));
+          .append($img);
       } else {
         var $post = $('<article>')
           .attr('class', 'other')
@@ -118,6 +116,14 @@
       }
     }
     $old_posts.appendTo($('#posts'));
+  }
+
+  var getImgElement = function(image_url, post_url) {
+    var $img = $('<img>').attr('src', image_url);
+    return $('<a>').attr({
+      'href': post_url,
+      'target': '_blank'
+    }).append($img);
   }
 
   loadOldPosts();
