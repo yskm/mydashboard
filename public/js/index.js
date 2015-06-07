@@ -93,10 +93,14 @@
     for (var i = 0; i < posts.length; i++) {
       var post = posts[i];
       if (post.type === 'photo') {
+        var $img = $('<img>').attr('src', post.photos[0].original_size.url);
         var $post = $('<article>')
           .attr('class', 'photo')
           .attr('data-post-num', ++oldest_post_num)
-          .append($('<img>').attr('src', post.photos[0].original_size.url));
+          .append($('<a>').attr({
+            'href': post.post_url,
+            'target': '_blank'
+          }).append($img));
       } else {
         var $post = $('<article>')
           .attr('class', 'other')
